@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gym Tracker</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: #0a0a0a;
+            color: #e0e0e0;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { 
+            color: #ff6b35; 
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+        .user-info {
+            background: #1a1a1a;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #ff6b35;
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 12px 20px;
+            background: #1a1a1a;
+            border: none;
+            color: #e0e0e0;
+            cursor: pointer;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+        .tab:hover { background: #2a2a2a; }
+        .tab.active { background: #ff6b35; color: #fff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .week-selector {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .week-btn {
+            padding: 8px 16px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #e0e0e0;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        .week-btn:hover { background: #3a3a3a; }
+        .day-card {
+            background: #1a1a1a;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #4a90e2;
+        }
+        .day-title {
+            color: #4a90e2;
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        .exercise {
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .exercise-name { flex: 1; }
+        .exercise-details {
+            display: flex;
+            gap: 15px;
+            font-weight: 600;
+            color: #ff6b35;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #b0b0b0;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 10px;
+            background: #2a2a2a;
+            border: 1px solid #3a3a3a;
+            color: #e0e0e0;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #ff6b35;
+        }
+        button.submit {
+            padding: 12px 24px;
+            background: #ff6b35;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            width: 100%;
+            margin-top: 10px;
+        }
+        button.submit:hover { background: #ff8555; }
+        .history-item {
+            background: #1a1a1a;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            border-left: 3px solid #4a90e2;
+        }
+        .history-date {
+            color: #ff6b35;
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        .travel-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #1a1a1a;
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+        }
+        .delete-btn {
+            padding: 6px 12px;
+            background: #e74c3c;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .success-msg {
+            background: #27ae60;
+            color: #fff;
+            padding: 12px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💪 GYM TRACKER</h1>
+        <div class="user-info" id="userInfo">Loading...</div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('program')">Program</button>
+            <button class="tab" onclick="showTab('log')">Log Workout</button>
+            <button class="tab" onclick="showTab('history')">History</button>
+            <button class="tab" onclick="showTab('stats')">Edit Stats</button>
+            <button class="tab" onclick="showTab('travel')">Travel Days</button>
+        </div>
+
+        <div id="program" class="tab-content active">
+            <div class="week-selector">
+                <button class="week-btn" onclick="changeWeek(-1)">← Prev Week</button>
+                <span id="currentWeek" style="color: #ff6b35; font-weight: 600;">Week 1</span>
+                <button class="week-btn" onclick="changeWeek(1)">Next Week →</button>
+            </div>
+            <div id="programContent"></div>
+        </div>
+
+        <div id="log" class="tab-content">
+            <div class="day-card">
+                <div class="day-title">Log Your Set</div>
+                <div class="success-msg" id="logSuccess">✓ Set logged successfully!</div>
+                <form onsubmit="logSet(event)">
+                    <div class="form-group">
+                        <label>Date (DD-MM-YYYY)</label>
+                        <input type="text" id="logDate" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Program Day</label>
+                        <select id="logDay" required>
+                            <option value="Day 1 - Push (Heavy Chest)">Day 1 - Push (Heavy Chest)</option>
+                            <option value="Day 2 - Pull (Strength + Deadlift rebuild)">Day 2 - Pull</option>
+                            <option value="Day 3 - Legs (Power)">Day 3 - Legs (Power)</option>
+                            <option value="Day 4 - Push (Volume)">Day 4 - Push (Volume)</option>
+                            <option value="Day 5 - Pull (Volume)">Day 5 - Pull (Volume)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Exercise</label>
+                        <input type="text" id="logExercise" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Weight (kg)</label>
+                        <input type="number" step="0.25" id="logWeight" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reps</label>
+                        <input type="number" id="logReps" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Note (optional)</label>
+                        <textarea id="logNote" rows="2"></textarea>
+                    </div>
+                    <button type="submit" class="submit">Log Set</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="history" class="tab-content">
+            <div class="day-title" style="margin-bottom: 15px;">Recent Workouts</div>
+            <div id="historyContent"></div>
+        </div>
+
+        <div id="stats" class="tab-content">
+            <div class="day-card">
+                <div class="day-title">Update Your Stats</div>
+                <div class="success-msg" id="statsSuccess">✓ Stats updated successfully!</div>
+                <form onsubmit="updateStats(event)">
+                    <div class="form-group">
+                        <label>Name</label>
+                        <input type="text" id="statsName" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bodyweight (kg)</label>
+                        <input type="number" step="0.1" id="statsBodyweight" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Bench 1RM (kg)</label>
+                        <input type="number" step="0.5" id="statsBench" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Deadlift 1RM (kg)</label>
+                        <input type="number" step="0.5" id="statsDeadlift" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Squat 1RM (kg)</label>
+                        <input type="number" step="0.5" id="statsSquat" required>
+                    </div>
+                    <button type="submit" class="submit">Update Stats</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="travel" class="tab-content">
+            <div class="day-card">
+                <div class="day-title">Mark Travel Days</div>
+                <div class="success-msg" id="travelSuccess">✓ Travel day added!</div>
+                <form onsubmit="addTravelDay(event)">
+                    <div class="form-group">
+                        <label>Date (DD-MM-YYYY)</label>
+                        <input type="text" id="travelDate" placeholder="DD-MM-YYYY" pattern="\d{2}-\d{2}-\d{4}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Reason</label>
+                        <input type="text" id="travelReason" placeholder="e.g., Business trip">
+                    </div>
+                    <button type="submit" class="submit">Add Travel Day</button>
+                </form>
+            </div>
+            <div style="margin-top: 20px;">
+                <div class="day-title" style="margin-bottom: 15px;">Scheduled Travel</div>
+                <div id="travelList"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentWeek = 1;
+
+        async function fetchStats() {
+            const res = await fetch('/api/stats');
+            const data = await res.json();
+            document.getElementById('userInfo').innerHTML = `
+                <strong>${data.name}</strong> | BW: ${data.bodyweight}kg | 
+                Bench: ${data.bench_1rm}kg | DL: ${data.deadlift_1rm}kg | Squat: ${data.squat_1rm}kg
+            `;
+            document.getElementById('statsName').value = data.name;
+            document.getElementById('statsBodyweight').value = data.bodyweight;
+            document.getElementById('statsBench').value = data.bench_1rm;
+            document.getElementById('statsDeadlift').value = data.deadlift_1rm;
+            document.getElementById('statsSquat').value = data.squat_1rm;
+        }
+
+        async function loadWeek(week) {
+            const res = await fetch(`/api/week/${week}`);
+            const data = await res.json();
+            let html = '';
+            data.days.forEach(day => {
+                html += `<div class="day-card">
+                    <div class="day-title">${day.title}</div>`;
+                day.exercises.forEach(ex => {
+                    html += `<div class="exercise">
+                        <div class="exercise-name">${ex.name}</div>
+                        <div class="exercise-details">
+                            <span>${ex.sets}</span>
+                            ${ex.weight ? `<span>${ex.weight} kg</span>` : ''}
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            });
+            document.getElementById('programContent').innerHTML = html;
+        }
+
+        function changeWeek(delta) {
+            currentWeek = Math.max(1, Math.min(8, currentWeek + delta));
+            document.getElementById('currentWeek').textContent = `Week ${currentWeek}`;
+            loadWeek(currentWeek);
+        }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tab).classList.add('active');
+            
+            if (tab === 'history') loadHistory();
+            if (tab === 'travel') loadTravelDays();
+        }
+
+        async function logSet(e) {
+            e.preventDefault();
+            const data = {
+                date: document.getElementById('logDate').value,
+                program_day: document.getElementById('logDay').value,
+                exercise: document.getElementById('logExercise').value,
+                weight: parseFloat(document.getElementById('logWeight').value),
+                reps: parseInt(document.getElementById('logReps').value),
+                note: document.getElementById('logNote').value
+            };
+            await fetch('/api/log_set', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            document.getElementById('logSuccess').style.display = 'block';
+            setTimeout(() => document.getElementById('logSuccess').style.display = 'none', 3000);
+            e.target.reset();
+            const today = new Date();
+            const dd = String(today.getDate()).padStart(2, '0');
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const yyyy = today.getFullYear();
+            document.getElementById('logDate').value = `${dd}-${mm}-${yyyy}`;
+        }
+
+        async function updateStats(e) {
+            e.preventDefault();
+            const data = {
+                name: document.getElementById('statsName').value,
+                bodyweight: parseFloat(document.getElementById('statsBodyweight').value),
+                bench_1rm: parseFloat(document.getElementById('statsBench').value),
+                deadlift_1rm: parseFloat(document.getElementById('statsDeadlift').value),
+                squat_1rm: parseFloat(document.getElementById('statsSquat').value)
+            };
+            await fetch('/api/update_stats', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            document.getElementById('statsSuccess').style.display = 'block';
+            setTimeout(() => document.getElementById('statsSuccess').style.display = 'none', 3000);
+            fetchStats();
+        }
+
+        async function loadHistory() {
+            const res = await fetch('/api/workout_history');
+            const data = await res.json();
+            let html = '';
+            data.forEach(item => {
+                html += `<div class="history-item">
+                    <div class="history-date">${item.date} - ${item.day}</div>
+                    <div>${item.exercise}: ${item.weight}kg × ${item.reps} reps</div>
+                    ${item.note ? `<div style="color: #b0b0b0; font-size: 14px; margin-top: 5px;">${item.note}</div>` : ''}
+                </div>`;
+            });
+            document.getElementById('historyContent').innerHTML = html || '<p>No workouts logged yet.</p>';
+        }
+
+        async function loadTravelDays() {
+            const res = await fetch('/api/travel_days');
+            const data = await res.json();
+            let html = '';
+            data.forEach(item => {
+                html += `<div class="travel-item">
+                    <div>
+                        <strong>${item.date}</strong><br>
+                        <span style="color: #b0b0b0; font-size: 14px;">${item.reason || 'No reason'}</span>
+                    </div>
+                    <button class="delete-btn" onclick="deleteTravelDay('${item.date}')">Delete</button>
+                </div>`;
+            });
+            document.getElementById('travelList').innerHTML = html || '<p>No travel days scheduled.</p>';
+        }
+
+        async function addTravelDay(e) {
+            e.preventDefault();
+            const data = {
+                date: document.getElementById('travelDate').value,
+                reason: document.getElementById('travelReason').value
+            };
+            await fetch('/api/add_travel_day', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(data)
+            });
+            document.getElementById('travelSuccess').style.display = 'block';
+            setTimeout(() => document.getElementById('travelSuccess').style.display = 'none', 3000);
+            e.target.reset();
+            loadTravelDays();
+        }
+
+        async function deleteTravelDay(date) {
+            await fetch('/api/delete_travel_day', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({date})
+            });
+            loadTravelDays();
+        }
+
+        // Initialize
+        const today = new Date();
+        const dd = String(today.getDate()).padStart(2, '0');
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const yyyy = today.getFullYear();
+        document.getElementById('logDate').value = `${dd}-${mm}-${yyyy}`;
+        
+        fetchStats();
+        loadWeek(1);
+    </script>
+</body>
+</html>
