@@ -1,0 +1,17 @@
+# Ignore SQLite database
+gym.db
+gym.db-journal
+*.sqlite
+*.sqlite3
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Virtual environment
+venv/
+.env/
+
+# OS garbage
+.DS_Store
+Thumbs.db
